@@ -1,18 +1,19 @@
-import { useState } from "react";
-import vehiclesData from "../store/vehicles.json";
+import { useState, useEffect } from "react";
+
 interface Vehicle {
   slNo: number;
   vehicleNumber: string;
-  insurance: string;
+  fitness: string;
+  rc: string;
   pollution: string;
-  rcDate: string;
+  insurance: string;
 }
 
 const getStatus = (vehicle: Vehicle) => {
   const today = new Date();
   const insuranceDate = new Date(vehicle.insurance);
   const pollutionDate = new Date(vehicle.pollution);
-  const rcDate = new Date(vehicle.rcDate);
+  const rcDate = new Date(vehicle.rc);
 
   if (insuranceDate >= today && pollutionDate >= today && rcDate >= today) {
     return "Active";
@@ -25,14 +26,20 @@ const statusStyles: Record<"Active" | "Inactive", string> = {
   Inactive: "bg-red-100 text-red-700",
 };
 
-export default function Vechile() {
+export default function VehicleList() {
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Type assertion for imported JSON
-  const data: Vehicle[] = vehiclesData as Vehicle[];
+  // Fetch data from backend
+  useEffect(() => {
+    fetch("http://localhost:5054/api/vehicles")
+      .then((res) => res.json())
+      .then((data: Vehicle[]) => setVehicles(data))
+      .catch((err) => console.error("Error fetching vehicles:", err));
+  }, []);
 
-  const filteredData = data.filter((vehicle) =>
+  const filteredData = vehicles.filter((vehicle) =>
     vehicle.vehicleNumber.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -41,7 +48,6 @@ export default function Vechile() {
       <div className="p-6 border-b">
         <h1 className="text-2xl font-semibold">Vehicles</h1>
         <p className="text-sm text-gray-500 mb-3">View and manage your vehicles</p>
-        {/* Search Bar */}
         <input
           type="text"
           placeholder="Search by Vehicle Number..."
@@ -74,7 +80,7 @@ export default function Vechile() {
                   <td className="px-6 py-4 font-medium">{item.vehicleNumber}</td>
                   <td className="px-6 py-4">{item.insurance}</td>
                   <td className="px-6 py-4">{item.pollution}</td>
-                  <td className="px-6 py-4">{item.rcDate}</td>
+                  <td className="px-6 py-4">{item.rc}</td>
                   <td className="px-6 py-4">
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-medium ${statusStyles[status]}`}
@@ -129,7 +135,7 @@ export default function Vechile() {
               </div>
               <div className="flex justify-between">
                 <span className="font-medium text-gray-700">RC Date:</span>
-                <span>{selectedVehicle.rcDate}</span>
+                <span>{selectedVehicle.rc}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="font-medium text-gray-700">Status:</span>
